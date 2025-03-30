@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'create_event' %}" class="btn btn-success">Создать событие</a>
+</div>
+
+<!-- Фильтры -->
+<form method="get" class="mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <input type="text" name="search" class="form-control" placeholder="Поиск...">
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">Все статусы</option>
+                <option value="PL">Запланировано</option>
+                <option value="IP">В процессе</option>
+                <option value="CO">Завершено</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">Применить</button>
+        </div>
+    </div>
+</form>
+
+<!-- Таблица событий -->
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th><a href="?order_by=title">Название</a></th>
+            <th><a href="?order_by=start_date">Дата начала</a></th>
+            <th>Статус</th>
+            <th>Участников</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for event in page_obj %}
+        <tr>
+            <td>{{ event.title }}</td>
+            <td>{{ event.start_date|date:"d.m.Y H:i" }}</td>
+            <td><span class="badge bg-primary">{{ event.get_status_display }}</span></td>
+            <td>{{ event.participant_count }}</td>
+            <td>
+                <a href="{% url 'edit_event' event.pk %}" class="btn btn-sm btn-warning">Изменить</a>
+                <a href="{% url 'manage_participants' event.pk %}" class="btn btn-sm btn-info">Участники</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Пагинация -->
+{% include 'pagination.html' %}
+
+<!-- Статистика -->
+<div class="mt-4">
+    <h5>Статистика:</h5>
+    {% for stat in status_stats %}
+    <span class="badge bg-secondary">{{ stat.get_status_display }} ({{ stat.count }})</span>
+    {% endfor %}
+</div>
+{% endblock %}
