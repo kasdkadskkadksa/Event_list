@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+from django.contrib import admin #
 from django.urls import path
 from events import views
 urlpatterns = [
@@ -26,5 +26,4 @@ urlpatterns = [
     path('participant/delete/<int:participant_id>/', views.delete_participant, name='delete_participant'),
     path('participant/register/', views.register_participant, name='register_participant'),
     path('event/<int:event_id>/participant/add/', views.register_participant, name='add_participant'),
-    path('participants/', views.participant_list, name='participant_list'),
 ]

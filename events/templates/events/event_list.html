@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load param_replace %}
+{% load custom_tags %}
 
 {% block content %}
 <div class="container mt-4">
@@ -12,16 +12,24 @@
     <form method="GET" class="mb-4">
         <div class="row g-3">
             <div class="col-md-3">
-                <input type="text" name="search" class="form-control" placeholder="Поиск" value="{{ request.GET.search }}">
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Поиск"
+                       value="{{ request.GET.search }}">
             </div>
             <div class="col-md-2">
-                <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                <input type="date"
+                       name="start_date"
+                       class="form-control"
+                       value="{{ request.GET.start_date }}">
             </div>
             <div class="col-md-2">
                 <select name="status" class="form-select">
                     <option value="">Все статусы</option>
                     {% for status in status_stats %}
-                        <option value="{{ status.status }}" {% if request.GET.status == status.status %}selected{% endif %}>
+                        <option value="{{ status.status }}"
+                                {% if request.GET.status == status.status %}selected{% endif %}>
                             {{ status.name }} ({{ status.count }})
                         </option>
                     {% endfor %}
@@ -39,30 +47,53 @@
         <thead>
             <tr>
                 <th>
-                    <a href="?{% param_replace sort='title' %}">
+                    <a href="?{% param_replace sort=sort_params.title %}">
                         Название
-                        {% if request.GET.sort == 'title' %}↑
-                        {% elif request.GET.sort == '-title' %}↓
+                        {% if current_sort == 'title' %}↑
+                        {% elif current_sort == '-title' %}↓
                         {% endif %}
                     </a>
                 </th>
                 <th>
-                    <a href="?{% param_replace sort='start_date' %}">
+                    <a href="?{% param_replace sort=sort_params.start_date %}">
                         Дата начала
-                        {% if request.GET.sort == 'start_date' %}↑
-                        {% elif request.GET.sort == '-start_date' %}↓
+                        {% if current_sort == 'start_date' %}↑
+                        {% elif current_sort == '-start_date' %}↓
                         {% endif %}
                     </a>
                 </th>
                 <th>
-                    <a href="?{% param_replace sort='status' %}">
-                        Статус
-                        {% if request.GET.sort == 'status' %}↑
-                        {% elif request.GET.sort == '-status' %}↓
+                    <a href="?{% param_replace sort=sort_params.end_date %}">
+                        Дата окончания
+                        {% if current_sort == 'end_date' %}↑
+                        {% elif current_sort == '-end_date' %}↓
                         {% endif %}
                     </a>
                 </th>
-                <th>Участников</th>
+                <th>
+                    <a href="?{% param_replace sort=sort_params.status %}">
+                        Статус
+                        {% if current_sort == 'status' %}↑
+                        {% elif current_sort == '-status' %}↓
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?{% param_replace sort=sort_params.updated_at %}">
+                        Последнее изменение
+                        {% if current_sort == 'updated_at' %}↑
+                        {% elif current_sort == '-updated_at' %}↓
+                        {% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?{% param_replace sort=sort_params.participant_count %}">
+                        Участников
+                        {% if current_sort == 'participant_count' %}↑
+                        {% elif current_sort == '-participant_count' %}↓
+                        {% endif %}
+                    </a>
+                </th>
                 <th>Действия</th>
             </tr>
         </thead>
@@ -71,7 +102,9 @@
             <tr>
                 <td>{{ event.title }}</td>
                 <td>{{ event.start_date|date:"d.m.Y H:i" }}</td>
+                <td>{% if event.end_date %}{{ event.end_date|date:"d.m.Y H:i" }}{% else %}—{% endif %}</td>
                 <td><span class="badge bg-secondary">{{ event.get_status_display }}</span></td>
+                <td>{{ event.updated_at|date:"d.m.Y H:i" }}</td>
                 <td>{{ event.participant_count }}</td>
                 <td>
                     <a href="{% url 'edit_event' event.pk %}" class="btn btn-sm btn-warning">Изменить</a>
@@ -80,7 +113,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" class="text-center">Событий не найдено</td>
+                <td colspan="7" class="text-center">Событий не найдено</td>
             </tr>
             {% endfor %}
         </tbody>

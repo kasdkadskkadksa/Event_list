@@ -27,7 +27,7 @@ class Event(models.Model):
 
 class Participant(models.Model):
     name = models.CharField(max_length=100, verbose_name='Имя')
-    email = models.EmailField(unique=True, validators=[EmailValidator()], verbose_name='Электронная почта')  # Убрано unique=True
+    email = models.EmailField(unique=True, validators=[EmailValidator()], verbose_name='Электронная почта')
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='participants')
     registration_date = models.DateTimeField(auto_now_add=True)
 
@@ -36,20 +36,3 @@ class Participant(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.email})"
-# #class Participant(models.Model):
-#     name = models.CharField(max_length=100, verbose_name='Имя')
-#     email = models.EmailField(
-#         unique=True,
-#         validators=[EmailValidator()],
-#         verbose_name='Электронная почта'
-#     )
-#     event = models.ForeignKey(
-#         Event,
-#         on_delete=models.CASCADE,
-#         related_name='participants',
-#         verbose_name='Событие'
-#     )
-#     registration_date = models.DateTimeField(auto_now_add=True)
-#
-#     def __str__(self):
-#         return f"{self.name} ({self.email})"#

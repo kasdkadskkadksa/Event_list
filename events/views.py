@@ -4,64 +4,74 @@ from django.core.paginator import Paginator
 from .models import Event, Participant
 from .forms import EventForm, ParticipantForm
 from django.utils import timezone
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count
 
 def event_list(request):
-    # Инициализация QuerySet с аннотацией количества участников
     events = Event.objects.annotate(participant_count=Count('participants'))
 
-    # Фильтрация по общему поиску
-    search_query = request.GET.get('search', '')
-    if search_query:
-        events = events.filter(
-            Q(title__icontains=search_query) |
-            Q(location__icontains=search_query) |
-            Q(status__icontains=search_query)
-        )
-
-    # Фильтр по локации
-    location = request.GET.get('location', '')
-    if location:
-        events = events.filter(location__icontains=location)
-
-    # Фильтр по статусу
-    status = request.GET.get('status', '')
-    if status:
-        events = events.filter(status=status)
-
-    # Фильтр по дате начала
+    # Параметры фильтрации
+    search = request.GET.get('search', '')
     start_date = request.GET.get('start_date', '')
+    status = request.GET.get('status', '')
+    current_sort = request.GET.get('sort', '')
+
+    # Определение направления сортировки для всех столбцов
+    sort_params = {
+        'title': '-title' if current_sort == 'title' else 'title',
+        'start_date': '-start_date' if current_sort == 'start_date' else 'start_date',
+        'end_date': '-end_date' if current_sort == 'end_date' else 'end_date',
+        'status': '-status' if current_sort == 'status' else 'status',
+        'updated_at': '-updated_at' if current_sort == 'updated_at' else 'updated_at',
+        'participant_count': '-participant_count' if current_sort == 'participant_count' else 'participant_count',
+    }
+
+    # Фильтрация
+    if search:
+        events = events.filter(
+            Q(title__icontains=search) |
+            Q(location__icontains=search) |
+            Q(description__icontains=search)
+        )
     if start_date:
         try:
             date_obj = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
             events = events.filter(start_date__date=date_obj)
         except ValueError:
             pass
+    if status:
+        events = events.filter(status=status)
 
     # Сортировка
-    allowed_sorts = ['title', 'start_date', 'end_date', 'location', 'status', 'participant_count', 'updated_at']
-    sort_by = request.GET.get('sort', '-start_date')
-    if sort_by.lstrip('-') in allowed_sorts:
-        events = events.order_by(sort_by)
+    allowed_sorts = [
+        'title', '-title',
+        'start_date', '-start_date',
+        'end_date', '-end_date',
+        'status', '-status',
+        'updated_at', '-updated_at',
+        'participant_count', '-participant_count'
+    ]
+    if current_sort in allowed_sorts:
+        events = events.order_by(current_sort)
     else:
         events = events.order_by('-start_date')
 
-    # Статистика по статусам (на основе отфильтрованных событий)
-    status_stats = []
-    for status_code, status_name in Event.STATUS_CHOICES:
-        count = events.filter(status=status_code).count()
-        status_stats.append({'status': status_code, 'count': count, 'name': status_name})
+    # Статистика статусов
+    status_stats = [
+        {'status': code, 'name': name, 'count': events.filter(status=code).count()}
+        for code, name in Event.STATUS_CHOICES
+    ]
 
     # Пагинация
     paginator = Paginator(events, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Передача данных в шаблон
     return render(request, 'events/event_list.html', {
         'page_obj': page_obj,
         'status_stats': status_stats,
+        'sort_params': sort_params,
         'request': request,
+        'current_sort': current_sort,
     })
 
 def create_event(request):
@@ -85,19 +95,10 @@ def edit_event(request, pk):
         form = EventForm(instance=event)
     return render(request, 'events/event_form.html', {'form': form})
 
-def event_participants(request, event_id):
-    event = get_object_or_404(Event, pk=event_id)
-    participants = event.participants.all()
-    return render(request, 'events/participants.html', {
-        'event': event,
-        'participants': participants,
-    })
-
 def delete_participant(request, participant_id):
     participant = get_object_or_404(Participant, pk=participant_id)
     participant.delete()
     return redirect('event_participants', event_id=participant.event.id)
-
 
 def register_participant(request, event_id=None):
     event = None
@@ -118,20 +119,18 @@ def register_participant(request, event_id=None):
     else:
         initial = {'event': event} if event else {}
         form = ParticipantForm(initial=initial)
-
     return render(request, 'events/register_participant.html', {'form': form, 'event': event})
 
-def participant_list(request):
+def event_participants(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
     participants = Participant.objects.select_related('event')
-
-    # Поиск по имени или email
     search = request.GET.get('search', '')
     if search:
         participants = participants.filter(
             Q(name__icontains=search) |
             Q(email__icontains=search)
         )
-
-    return render(request, 'events/participant_list.html', {
+    return render(request, 'events/participants.html', {
+        'event': event,
         'participants': participants
     })
