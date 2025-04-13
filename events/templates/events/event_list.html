@@ -103,7 +103,11 @@
                 <td>{{ event.title }}</td>
                 <td>{{ event.start_date|date:"d.m.Y H:i" }}</td>
                 <td>{% if event.end_date %}{{ event.end_date|date:"d.m.Y H:i" }}{% else %}—{% endif %}</td>
-                <td><span class="badge bg-secondary">{{ event.get_status_display }}</span></td>
+                <td><span class="badge
+                {% if event.status == 'planned' %}bg-warning
+                {% elif event.status == 'completed' %}bg-success
+                {% else %}bg-secondary
+                {% endif %}">{{ event.get_status_display }}</span></td>
                 <td>{{ event.updated_at|date:"d.m.Y H:i" }}</td>
                 <td>{{ event.participant_count }}</td>
                 <td>

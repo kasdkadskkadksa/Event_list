@@ -3,7 +3,6 @@
 <div class="d-flex justify-content-between mb-4">
     <h1>Участники события: {{ event.title }}</h1>
     <div>
-        <!-- Исправленная ссылка с передачей event_id -->
         <a href="{% url 'add_participant' event.pk %}" class="btn btn-success">Добавить участника</a>
         <a href="{% url 'event_list' %}" class="btn btn-secondary">Назад</a>
     </div>

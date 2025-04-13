@@ -33,6 +33,15 @@
                     {{ form.end_date }}
                 </div>
             </div>
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
 
             <div class="mb-3">
                 <label class="form-label">Локация</label>

@@ -123,7 +123,7 @@ def register_participant(request, event_id=None):
 
 def event_participants(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
-    participants = Participant.objects.select_related('event')
+    participants = Participant.objects.filter(event=event).select_related('event')
     search = request.GET.get('search', '')
     if search:
         participants = participants.filter(

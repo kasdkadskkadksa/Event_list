@@ -11,7 +11,7 @@ class Event(models.Model):
     title = models.CharField(max_length=200, verbose_name='Название')
     description = models.TextField(blank=True, verbose_name='Описание')
     start_date = models.DateTimeField(verbose_name='Дата и время начала')
-    end_date = models.DateTimeField(blank=True, null=True, verbose_name='Дата и время окончания')
+    end_date = models.DateTimeField(verbose_name='Дата и время окончания')
     location = models.CharField(max_length=200, verbose_name='Локация')
     status = models.CharField(
         max_length=20,
